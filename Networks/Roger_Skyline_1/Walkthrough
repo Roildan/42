@@ -1,0 +1,99 @@
+Distrib Used:
+	Debian 9.8: Iso dans perso de Lpoinsot
+
+Config VM:
+	Language: English
+	Country: France
+	Local Settings: US
+	Key Map: American English
+
+	Hostname: Roger
+	Domain Name: /
+	Root Password: root
+	Username: armoulin
+	User Password: pass
+
+	Partition Manual:
+		First --> 4.5 GiB: Primary Beginning (Ext 4)
+		Second --> 2.0GiB Primary Beginning (Swap)
+		Third --> 2.0 GiB Primary Beginning (Ext 4)
+		(Let all other settings as default)
+
+	No additionnal disk
+	Country for mirror server: France then use the first one
+	Remove all additionnal software
+	Install GRUB because it's cool
+
+IMPORTANT:
+	VM --> Settings --> Network --> Change NAT to Bridged Adaptater
+
+# Connect as root (At startup or use "su")
+apt-get install sudo		// Install sudo
+adduser armoulin sudo		// Addarmoulin as sudo user group
+su armoulin					// Log back as normal user
+sudo apt-get install vim	// Install vim
+vim .vimrc					// setup vim
+
+# Network Configuration:
+LINK: https://wiki.debian.org/fr/NetworkConfiguration#Configurer_une_interface_r.2BAOk-seau_manuellement
+sudo vim /etc/network/interfaces	// Configuration file
+	Change last line from 'dhcp' to 'static'
+		address 10.11.50.50 (le deux derniers sont au choix)
+		netmask 255.255.255.252
+		gateaway 10.11.254.254
+
+# SSH Configuration:
+
+# Base:
+sudo apt-get install ssh
+sudo vim /etc/ssh/sshd_config
+	Uncomment PORT 22 --> PORT 1313
+	PermitRootLogin no
+sudo service sshd restart
+LINK: https://openclassrooms.com/fr/courses/43538-reprenez-le-controle-a-laide-de-linux/41773-la-connexion-securisee-a-distance-avec-ssh
+ssh armoulin@10.11.50.50 -p 1313 --> For connection as client
+
+# With key (On Client Machine):
+	ssh-keygen -t rsa	--> Generate RSA punlic key stored in ~/.ssh/id_rsa.pub
+	ssh-copy-id -i id_rsa.pub armoulin@10.11.50.50 -p 1313
+Now we can connect ourself without entering the password
+
+# Firewall Configuration:
+sudo apt-get install net-tools	// Installl netstat, ifconfig, route, ect..
+Link for understand iptables:
+	https://wiki.archlinux.org/index.php/Iptables
+Link for Simple Statefull Firewall:
+	https://wiki.archlinux.org/index.php/Simple_stateful_firewall
+Only Link Notable:
+	https://openclassrooms.com/fr/courses/1197906-securiser-son-serveur-linux
+sudo vim /etc/init.d/firewall		// Create the srcipt
+sudo /etc/init.d/firewall			// Start it
+sudo update-rc.d firewall defaults	// Start it at boot
+
+# Port Scan Protection
+sudo apt-get install portsentry				// Install software
+sudo vim /etc/portsentry/portsentry.conf	// Configure
+
+# DDoS Protection
+sudo apt-get install fail2ban
+sudo vim /etc/fail2ban/jail.confif
+
+# Update Script
+Create Script (current path is /etc/init.d/update.sh)
+chmod 777 the script
+# Edit /etc/crontab
+0  4 * * * root sh /etc/init.d/update.sh
+@reboot    root	sh /etc/init.d/update.sh	
+
+# Crontab Check Script
+sudo apt-get install sendmail
+edit /etc/aliases "root: arthurmoulin@hotmail.fr"
+sudo sendmailconfig #Update Aliases
+Create Script (current path is /etc/init.d/check_crontab.sh)
+chmod 777 the script
+# Edit /etc/crontab
+0  0 * * * root sh /etc/init.d/check_crontab.sh
+
+# WARNING REMOVE NET-TOOLS A LA FIN DU PROJET CAR NO NEED
+# WARNING DONT FORGET TO CHANGE STATIC IP WHEN CHANGING CLUSTER
+# WARNING DONT FORGET TO CHECK VIRTUALBOX ADDON IS INSTALLED WHEN CHANGING COMPUTER
