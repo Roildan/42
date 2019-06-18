@@ -1,0 +1,5 @@
+# Ignore all object and archive files
+*.[oa]
+
+# Ignore binary files
+test
